@@ -9,11 +9,17 @@ import {
   IonItem,
   IonActionSheet,
   IonAlert,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonCheckbox,
 } from '@ionic/react'
-import React from 'react'
+import React, { useState } from 'react'
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
 import { url } from '../../config/config'
+
+import ReadOnlyRow from '../../components/readOnlyRow';
 
 
 const Pallets = props => {
@@ -32,16 +38,66 @@ const Pallets = props => {
   const [quantità, setQuantità] = React.useState()
   const [quantità_nuova, setQuantità_nuova] = React.useState()
 
-  const checkPermission = async (pulsante) => {
+  const [contacts, setContacts]= React.useState([])
+  const [addFormData, setAddFormData] = React.useState({qr: '', carico: ''})
+  const [id,setId]= React.useState(0);
+  const [checked,setChecked]= React.useState(false);
+
+  const handleAddFormChange = (event) => {
+    //event.preventDeafault();
+    const fieldName=event.target.getAttribute('name');
+    const fieldValue=event.target.value;
+    const newFormData ={...addFormData}
+    newFormData[fieldName]=fieldValue;
+    setAddFormData(newFormData);
+    console.log(newFormData);
+  }
+
+  const handleAddFormSubmit = () =>{
+    //event.preventDeafault();
+    const newContact= {
+      id: id,
+      qr: addFormData.qr,
+      carico: addFormData.carico
+    }
+
+    const newContacts = [...contacts, newContact]
+    setContacts(newContacts);
+    setId(id+1);
+    console.log(contacts);
+  }
+
+  const prendiEInvia=()=>{
+    const newContact= {
+      id: id,
+      qr: codice,
+      carico: ""+checked
+    }
+
+    const newContacts = [...contacts, newContact]
+    setContacts(newContacts);
+    setId(id+1);
+    
+    setCodice();
+    setChecked(false);
+  }
+
+  const handleDeleteClick= (contactId) =>{
+    const newContacts=[...contacts];
+    const index = contacts.findIndex((contact)=> contact.id === contactId)
+    newContacts.splice(index,1);
+    setContacts(newContacts);
+  }
+
+  const checkPermission = async () => {
     const status = await BarcodeScanner.checkPermission({ force: true });     //chiede permesso fotocamera
-    if (status.granted) { startScan(pulsante) }
+    if (status.granted) { startScan() }
     };
 
-  const startScan = async (pulsante) => {
+  const startScan = async () => {
     setNascondi(true)    //fa vedere la fotocamera
     const result = await BarcodeScanner.startScan();
-    if (result.hasContent) {if (pulsante===0) {setCodice(result.content);}
-                            if (pulsante===1) {setCodice_nuovo(result.content);}
+    if (result.hasContent) {setCodice(result.content)
                             setNascondi(false);   //fa vedere la pagina
                             }
   };
@@ -169,15 +225,37 @@ const Pallets = props => {
             position="bottom"
             color="danger"
           />
-
+          
+          <IonGrid>
+            <IonRow>
+              <IonCol size="6"><IonItem>QR</IonItem></IonCol>
+              <IonCol size="3"><IonItem>Carico</IonItem></IonCol>
+              <IonCol size="3"><IonItem>Rimuovi</IonItem></IonCol>
+            </IonRow>
+            {contacts.map((contact)=> (
+                <ReadOnlyRow contact={contact}
+                handleDeleteClick={handleDeleteClick}/>
+            ))}
+          </IonGrid>
+          
             <IonItem>
-              <IonLabel >
+              <IonLabel>
               QR: {codice}
               </IonLabel>  
-              <IonButton onClick={() => {checkPermission(0)}} size="medium" expand="block" slot="end">
+              <IonCheckbox checked={checked} onIonChange={e => {setChecked(e.detail.checked)}} />
+              <IonButton onClick={() => {checkPermission()}} size="medium" expand="block" slot="end">
                  QR CODE SCAN
               </IonButton>
             </IonItem>
+
+            
+            <IonButton  type="submit" size="large" expand="block" color="success" onClick={()=>prendiEInvia()} >Aggiungi</IonButton>  
+          
+          
+
+
+
+
             
             <IonItem>
             <IonLabel>
