@@ -145,10 +145,10 @@ const Pallets = props => {
               text: 'Invio',
               handler: () => { 
                 postPallets();
-                setShowToastSendButton(true)}
+                }
             },  {
               text: 'Annulla',
-              handler: () => { setShowToastCancelButton(true)}
+              handler: () => {setShowToastCancelButton(true)}
             }]}>
         </IonActionSheet>
 
