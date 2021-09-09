@@ -13,6 +13,8 @@ import {
   IonRow,
   IonCol,
   IonCheckbox,
+  IonBackButton,
+  IonHeader
 } from '@ionic/react'
 import React from 'react'
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
@@ -25,7 +27,7 @@ import ReadOnlyRow from '../../components/readOnlyRow';
 const Pallets = props => {
 
   //Visibility Variables
-  const [hideHomePage, setNascondi] = React.useState(false) //vero= mostra fotocamera falso= mostra homepage
+  const [hideHomePage, setHideHomePage] = React.useState(false) //vero= mostra fotocamera falso= mostra homepage
   const [showAlert, setShowAlert] = React.useState(false)  //per inserire nuova quantità del pallets se serve
   const [showToastSendButton, setShowToastSendButton] = React.useState(false) //barra sotto per invio
   const [showToastCancelButton, setShowToastCancelButton] = React.useState(false) //barra sotto per annulla
@@ -69,10 +71,10 @@ const Pallets = props => {
     };
 
   const startScan = async () => {
-    setNascondi(true)    //fa vedere la fotocamera
+    setHideHomePage(true)    //fa vedere la fotocamera
     const result = await BarcodeScanner.startScan();
     if (result.hasContent) {setCode(result.content)
-                            setNascondi(false);   //fa vedere la pagina
+                            setHideHomePage(false);   //fa vedere la pagina
                             }
   };
 
@@ -94,6 +96,7 @@ const Pallets = props => {
     setShowToastSendButton(true)
     setCode();
     setQuantity();
+    setPallets([])
 }
   catch(error){
     setShowToastError(true);
@@ -203,7 +206,7 @@ const Pallets = props => {
               QR: {code}
               </IonLabel>  
               <IonCheckbox checked={checked} onIonChange={e => {setChecked(e.detail.checked)}} />
-              <IonButton onClick={() => {/*checkPermission()}*/setCode(Math.floor(Math.random()*1000));}} size="medium" expand="block" slot="end">
+              <IonButton onClick={() => {checkPermission()}/*setCode(Math.floor(Math.random()*1000));}*/} size="medium" expand="block" slot="end">
                  QR CODE SCAN
               </IonButton>
             </IonItem>
@@ -217,9 +220,17 @@ const Pallets = props => {
 
     </IonPage>
   )}
-  else {
+  if(hideHomePage === true) {
     return(
-      null
+     
+      <IonHeader>
+      <IonToolbar>
+        <IonButton slot="end" >
+          <IonBackButton text="Indietro" defaultHref="/" onClick={() => {BarcodeScanner.stopScan(); setHideHomePage(false)}}/>
+       </IonButton>
+      </IonToolbar>
+    </IonHeader>
+      
     )
   }
 }
