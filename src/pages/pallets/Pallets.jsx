@@ -214,15 +214,17 @@ const Pallets = props => {
           
           <IonGrid>
             <IonRow kew="header">
-              <IonCol size="8"><IonItem>QR</IonItem></IonCol>
-              <IonCol size="2"><IonItem>Carico</IonItem></IonCol>
-              <IonCol size="2"><IonItem>Rimuovi</IonItem></IonCol>
+              <IonCol size="6"><IonItem>QR</IonItem></IonCol>
+              <IonCol size="3"><IonItem>Carico</IonItem></IonCol>
+              <IonCol size="3"><IonItem>Rimuovi</IonItem></IonCol>
             </IonRow>
             {pallets.map((contact)=> (
                 <ReadOnlyRow contact={contact}
                 handleDeleteClick={handleDeleteClick}/>
             ))}
           </IonGrid>
+          <br/><br/><br/>
+          <IonLabel id="bottom"></IonLabel>
           </IonContent>
           
             <IonItem>
@@ -235,9 +237,9 @@ const Pallets = props => {
               </IonButton>
             </IonItem>
           
-            
+            <a href="#bottom">
             <IonButton  type="submit" size="large" expand="block"  onClick={()=>addPallets()} >Aggiungi</IonButton>  
-          
+            </a>
             <IonButton onClick={() => setShowActionSheet(true)} size="large" expand="block" color="success" >
                  Invio
             </IonButton>            
