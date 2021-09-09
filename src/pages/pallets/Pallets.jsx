@@ -14,7 +14,8 @@ import {
   IonCol,
   IonCheckbox,
   IonBackButton,
-  IonHeader
+  IonHeader,
+  IonLoading
 } from '@ionic/react'
 import React from 'react'
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
@@ -33,6 +34,8 @@ const Pallets = props => {
   const [showToastCancelButton, setShowToastCancelButton] = React.useState(false) //barra sotto per annulla
   const [showActionSheet, setShowActionSheet] = React.useState(false) //barra dopo premuto invio
   const [showToastError, setShowToastError] = React.useState(false) //barra sotto per eroore connessione DB
+  const [showToastEmptyField, setShowToastEmptyField]= React.useState(false) // controlla che i campi siano pieni
+  const [showLoadingDatabase,setShowLoadingDatabase] = React.useState(false) //Alert mentre si caricano le info sul DB
 
   //Query Variables
   const [code, setCode] = React.useState()
@@ -43,19 +46,24 @@ const Pallets = props => {
   const [checked,setChecked]= React.useState(false);
 
   const addPallets=()=>{
-    const newPallet= {
-      id: id,
-      qr: code,
-      carico: ""+checked
+    if(code===undefined){
+      setShowToastEmptyField(true);
     }
+    else {
+      const newPallet= {
+        id: id,
+        qr: code,
+        carico: ""+checked
+      }
 
-    const newPallets = [...pallets, newPallet]
-    setPallets(newPallets);
-    setId(id+1);
-    
-    setCode();
-    setChecked(false);
-    //console.log(pallets)
+      const newPallets = [...pallets, newPallet]
+      setPallets(newPallets);
+      setId(id+1);
+      
+      setCode();
+      setChecked(false);
+      //console.log(pallets)
+  }
   }
 
   const handleDeleteClick= (palletId) =>{
@@ -104,12 +112,14 @@ const Pallets = props => {
 }
 
   const dividePallets = async()=>{
-    console.log(pallets)
+    //console.log(pallets)
+    setShowLoadingDatabase(true);
     for (var pallet of pallets){
       var data={"qr":pallet.qr,"carico":pallet.carico}
       //console.log(data);
       await postPallets(data);
     }
+    setShowLoadingDatabase(false);
   }
 
     if (hideHomePage === false){
@@ -163,6 +173,12 @@ const Pallets = props => {
             }]}>
         </IonActionSheet>
 
+        <IonLoading
+          isOpen={showLoadingDatabase}
+          onDidDismiss={() => setShowLoadingDatabase(false)}
+          message={'Connessione al Database'}   
+        />
+
         <IonToast
             isOpen={showToastSendButton}
             duration={1000}
@@ -187,12 +203,20 @@ const Pallets = props => {
             position="bottom"
             color="danger"
           />
+          <IonToast //Chiamato quando ci sono campi non compilati
+            isOpen={showToastEmptyField}
+            duration={1000}
+            onDidDismiss={() => setShowToastEmptyField(false)}    //dopo 5 secondi si chiude e setta a false
+            message="E' necessario compilare tutti i campi con dei valori validi"
+            position="bottom"
+            color="danger"
+          />      
           
           <IonGrid>
             <IonRow kew="header">
-              <IonCol size="6"><IonItem>QR</IonItem></IonCol>
-              <IonCol size="3"><IonItem>Carico</IonItem></IonCol>
-              <IonCol size="3"><IonItem>Rimuovi</IonItem></IonCol>
+              <IonCol size="8"><IonItem>QR</IonItem></IonCol>
+              <IonCol size="2"><IonItem>Carico</IonItem></IonCol>
+              <IonCol size="2"><IonItem>Rimuovi</IonItem></IonCol>
             </IonRow>
             {pallets.map((contact)=> (
                 <ReadOnlyRow contact={contact}
@@ -206,7 +230,7 @@ const Pallets = props => {
               QR: {code}
               </IonLabel>  
               <IonCheckbox checked={checked} onIonChange={e => {setChecked(e.detail.checked)}} />
-              <IonButton onClick={() => {checkPermission()}/*setCode(Math.floor(Math.random()*1000));}*/} size="medium" expand="block" slot="end">
+              <IonButton onClick={() => {/*checkPermission()}*/setCode(Math.floor(Math.random()*1000));}} size="medium" expand="block" slot="end">
                  QR CODE SCAN
               </IonButton>
             </IonItem>
