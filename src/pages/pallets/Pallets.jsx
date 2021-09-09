@@ -36,31 +36,31 @@ const Pallets = props => {
   const [code, setCode] = React.useState()
   const [quantity, setQuantity] = React.useState()
 
-  const [contacts, setContacts]= React.useState([])
+  const [pallets, setPallets]= React.useState([])
   const [id,setId]= React.useState(0);
   const [checked,setChecked]= React.useState(false);
 
   const addPallets=()=>{
-    const newContact= {
+    const newPallet= {
       id: id,
       qr: code,
       carico: ""+checked
     }
 
-    const newContacts = [...contacts, newContact]
-    setContacts(newContacts);
+    const newPallets = [...pallets, newPallet]
+    setPallets(newPallets);
     setId(id+1);
     
     setCode();
     setChecked(false);
-    console.log(contacts)
+    //console.log(pallets)
   }
 
-  const handleDeleteClick= (contactId) =>{
-    const newContacts=[...contacts];
-    const index = contacts.findIndex((contact)=> contact.id === contactId)
-    newContacts.splice(index,1);
-    setContacts(newContacts);
+  const handleDeleteClick= (palletId) =>{
+    const newPallets=[...pallets];
+    const index = pallets.findIndex((contact)=> contact.id === palletId)
+    newPallets.splice(index,1);
+    setPallets(newPallets);
   }
 
   const checkPermission = async () => {
@@ -76,8 +76,7 @@ const Pallets = props => {
                             }
   };
 
-  const postPallets = async ()=> {
-    var data = {};
+  const postPallets = async (data)=> {
     try {
       await fetch(url,{
         method: 'POST', 
@@ -100,6 +99,15 @@ const Pallets = props => {
     setShowToastError(true);
   }
 }
+
+  const dividePallets = async()=>{
+    console.log(pallets)
+    for (var pallet of pallets){
+      var data={"qr":pallet.qr,"carico":pallet.carico}
+      //console.log(data);
+      await postPallets(data);
+    }
+  }
 
     if (hideHomePage === false){
     return (
@@ -144,7 +152,7 @@ const Pallets = props => {
             buttons={[{
               text: 'Invio',
               handler: () => { 
-                postPallets();
+                dividePallets();
                 }
             },  {
               text: 'Annulla',
@@ -154,7 +162,7 @@ const Pallets = props => {
 
         <IonToast
             isOpen={showToastSendButton}
-            duration={2000}
+            duration={1000}
             onDidDismiss={() => setShowToastSendButton(false)}    //dopo 2 secondi si chiude e setta a false
             message="Operazione completata"
             position="bottom"
@@ -162,7 +170,7 @@ const Pallets = props => {
           />
           <IonToast
             isOpen={showToastCancelButton}
-            duration={2000}
+            duration={1000}
             onDidDismiss={() => setShowToastCancelButton(false)}    //dopo 2 secondi si chiude e setta a false
             message="Operazione annullata"
             position="bottom"
@@ -170,7 +178,7 @@ const Pallets = props => {
           />
           <IonToast
             isOpen={showToastError}
-            duration={2000}
+            duration={1000}
             onDidDismiss={() => setShowToastCancelButton(false)}    //dopo 2 secondi si chiude e setta a false
             message="Connessione con il Database non riuscita. Riprova"
             position="bottom"
@@ -183,7 +191,7 @@ const Pallets = props => {
               <IonCol size="3"><IonItem>Carico</IonItem></IonCol>
               <IonCol size="3"><IonItem>Rimuovi</IonItem></IonCol>
             </IonRow>
-            {contacts.map((contact)=> (
+            {pallets.map((contact)=> (
                 <ReadOnlyRow contact={contact}
                 handleDeleteClick={handleDeleteClick}/>
             ))}
@@ -195,7 +203,7 @@ const Pallets = props => {
               QR: {code}
               </IonLabel>  
               <IonCheckbox checked={checked} onIonChange={e => {setChecked(e.detail.checked)}} />
-              <IonButton onClick={() => {checkPermission()}} size="medium" expand="block" slot="end">
+              <IonButton onClick={() => {/*checkPermission()}*/setCode(Math.floor(Math.random()*1000));}} size="medium" expand="block" slot="end">
                  QR CODE SCAN
               </IonButton>
             </IonItem>
