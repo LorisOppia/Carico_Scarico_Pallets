@@ -4,219 +4,186 @@ import {
   IonButton,
   IonToolbar,
   IonTitle,
-  IonToast,
-  IonLabel,
   IonItem,
-  IonActionSheet,
+  IonItemSliding,
+  IonItemOptions,
+  IonItemOption,
+  IonLabel,
+  IonBackButton,
   IonAlert,
+  IonToast,
 } from '@ionic/react'
-import React from 'react'
+import {useState} from 'react'
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
+import { App } from '@capacitor/app';
 
-import { url } from '../../config/config'
+const Pallets = () => {
 
+  App.addListener('backButton', () => {
+    setNascondi(false)
+  })
 
-const Pallets = props => {
+  const invia = async () => {
+    let url = "http://127.0.0.1:8000/caricoScaricoPallets/"
+    let carico
+    let data = {}
+    for (let i = 0;i<righe.length; i++){
+    carico = false
+    if (testo[i]==="Carico") {carico=true}
+    data = {"qr":righe[i].toString(),"carico":carico}
+      try {
+        await fetch(url,{
+          method: 'POST', 
+          mode: 'cors', 
+          cache: 'no-cache', 
+          credentials: 'same-origin', 
+          headers: { 'Content-Type': 'application/json'},
+          redirect: 'follow',
+          referrerPolicy: 'no-referrer',
+          body: JSON.stringify(data) 
+      });
+  }
+    catch(error){
+    }
+  }
+  if (righe.length>0){setRighe([])
+                      setTesto([])
+                      setShowToastInvio(true)}
+  }
 
-  //Visibility Variables
-  const [nascondi, setNascondi] = React.useState(false)
-  const [showAlert, setShowAlert] = React.useState(false)
-  const [showAlert_nuovo, setShowModal_nuovo] = React.useState(false)
-  const [showToast_invio, setShowToast_invio] = React.useState(false)
-  const [showToast_annulla, setShowToast_annulla] = React.useState(false)
-  const [showActionSheet, setShowActionSheet] = React.useState(false)
-
-  //Query Variables
-  const [codice, setCodice] = React.useState()
-  const [codice_nuovo, setCodice_nuovo] = React.useState()
-  const [quantità, setQuantità] = React.useState()
-  const [quantità_nuova, setQuantità_nuova] = React.useState()
-
-  const checkPermission = async (pulsante) => {
-    const status = await BarcodeScanner.checkPermission({ force: true });     //chiede permesso fotocamera
-    if (status.granted) { startScan(pulsante) }
+  const checkPermission = async () => {
+    const status = await BarcodeScanner.checkPermission({ force: true });
+    if (status.granted) { startScan() }
     };
 
-  const startScan = async (pulsante) => {
-    setNascondi(true)    //fa vedere la fotocamera
+  const startScan = async () => {
+    setNascondi(true)
     const result = await BarcodeScanner.startScan();
-    if (result.hasContent) {if (pulsante===0) {setCodice(result.content);}
-                            if (pulsante===1) {setCodice_nuovo(result.content);}
-                            setNascondi(false);   //fa vedere la pagina
-                            }
+    if (result.hasContent) { setRighe(righe => [...righe, result.content]);
+                            setTesto(testo => [...testo, "Carico"]);
+                            setNascondi(false); }
+    }; 
+    
+  const rimuovi = (x) => {
+    let app0 = [...testo]
+    let app = [...righe]
+    app.splice(x,1)
+    app0.splice(x,1)
+    setRighe(app)
+    setTesto(app0)
+    };
+
+  const chiudi = (id) => {
+    document.getElementById(id).close();
   };
 
-  const postPallets = async ()=> {
-    var data = {"qr" : "zzzz", "nuova_qt":quantità,"nuovo_qr":"aaaa","qt_sottratta":quantità_nuova};
-    try {
-    fetch(url,{
-    method: 'POST', 
-    mode: 'cors', 
-    cache: 'no-cache', 
-    credentials: 'same-origin', 
-    headers: {
-    'Content-Type': 'application/json'
-    // 'Content-Type': 'application/x-www-form-urlencoded',
-    },
-  redirect: 'follow',
-  referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-  body: JSON.stringify(data) // body data type must match "Content-Type" header
-  });
-  setCodice();
-  setQuantità();
-  setCodice_nuovo();
-  setQuantità_nuova();
-}
-  catch(error){
-
-  }
-}
-
+  const [righe, setRighe] = useState([])
+  const [nascondi, setNascondi] = useState(false)
+  const [testo, setTesto] = useState([])
+  const [showAlertRimuovi, setShowAlertRimuovi] = useState(false)
+  const [showAlertInvia, setShowAlertInvia] = useState(false)
+  const [showAlertNoElem, setShowAlertNoElem] = useState(false)
+  const [showToastInvio, setShowToastInvio] = useState(false)
   
-
-    if (nascondi === false){
+  if (nascondi===false){
     return (
     <IonPage>
     <IonToolbar>
         <IonTitle>Home page</IonTitle>
       </IonToolbar>
+
+      <IonItem>
+        Codici inseriti: {righe.length}
+        <IonButton slot="end" color="danger" size="medium" onClick={() => setShowAlertRimuovi(true)}>Rimuovi tutti</IonButton>
+      </IonItem>
+
       <IonContent>
+        {righe.map((_,i) => (<IonItemSliding key={i} id={i}>
+                                <IonItemOptions side="end" >
+                                  <IonItemOption color="danger" onClick={() => {rimuovi(i); chiudi(i)}}>
+                                  Cancella
+                                  </IonItemOption>
+                                </IonItemOptions>
+                                <IonItem>
+                                  {righe[i]}
+                                  <IonLabel slot="end" onClick={() => {let app=[...testo]; if (testo[i]==="Carico") {app[i]="Scarico"}
+                                                                                            else {app[i]="Carico"}
+                                                                        setTesto(app)
+                                                                        }}>
+                                    {testo[i]}
+                                  </IonLabel>
+                                </IonItem>
+                              </IonItemSliding>))}
+      </IonContent>
 
+      <IonItem>
+            <IonButton slot="start" color="success" size="large" onClick={() => {if (righe.length===0){setShowAlertNoElem(true)} 
+                                                                                 else {setShowAlertInvia(true)}}}>Invia</IonButton>
+            <IonButton onClick={() => checkPermission()} size="large" slot="end">       
+                 Scan
+            </IonButton>
+      </IonItem>
       <IonAlert
-          isOpen={showAlert}
-          onDidDismiss={() => setShowAlert(false)}
-          cssClass='my-custom-class'
-          header={'Inserisci nuova quantità'}
-          inputs={[
-            {
-              name: 'name',
-              type: 'number',
-              placeholder: 'Quantità',
-            },         
-          ]}
+          isOpen={showAlertRimuovi}
+          onDidDismiss={() => setShowAlertRimuovi(false)}
+          header={'Vuoi rimuovere tutti gli elementi?'}
           buttons={[
             {
-              text: 'Cancel',
-              role: 'cancel',
-              cssClass: 'secondary',
-              handler: () => {}
-            },
-            {
-              text: 'Ok',
-              handler: data => {
-                setQuantità(parseInt(data.name))
-              }
-            }
-          ]}
-        />
-
-        <IonAlert
-          isOpen={showAlert_nuovo}
-          onDidDismiss={() => setShowModal_nuovo(false)}
-          cssClass='my-custom-class'
-          header={'Inserisci quantità sottratta'}
-          inputs={[
-            {
-              name: 'name',
-              type: 'number',
-              placeholder: 'Quantità',
-            },         
-          ]}
-          buttons={[
-            {
-              text: 'Cancel',
-              role: 'cancel',
-              cssClass: 'secondary',
-              handler: () => {}
-            },
-            {
-              text: 'Ok',
-              handler: data => {
-                setQuantità_nuova(parseInt(data.name))
-              }
-            }
-          ]}
-        />
-
-        <IonActionSheet 
-            isOpen={showActionSheet}
-            onDidDismiss={() => setShowActionSheet(false)}
-            header= {"Vuoi inviare " + quantità + " oggetti e " + quantità_nuova + " oggetti?"}
-            buttons={[{
-              text: 'Invio',
-              handler: () => { 
-                postPallets();
-                setShowToast_invio(true)}
-            },  {
               text: 'Annulla',
-              handler: () => { setShowToast_annulla(true)}
-            }]}>
-        </IonActionSheet>
-
+              handler: () => {setShowAlertRimuovi(false)}
+            },
+            {
+              text: 'Rimuovi',
+              handler: () => { setRighe([]); setTesto([]) }
+            }
+          ]}
+        /> 
+        <IonAlert
+          isOpen={showAlertInvia}
+          onDidDismiss={() => setShowAlertInvia(false)}
+          header={'Vuoi inviare ' + righe.length +' elementi?'}
+          buttons={[
+            {
+              text: 'Annulla',
+              handler: () => {setShowAlertInvia(false)}
+            },
+            {
+              text: 'Invia',
+              handler: () => {invia()}
+            }
+          ]}
+        />
+        <IonAlert
+          isOpen={showAlertNoElem}
+          onDidDismiss={() => setShowAlertNoElem(false)}
+          header={'Non ci sono elementi'}
+          buttons={[
+            {
+              text: 'Ok',
+              handler: () => {setShowAlertNoElem(false)}
+            }
+          ]}
+        />
         <IonToast
-            isOpen={showToast_invio}
+            isOpen={showToastInvio}
             duration={2000}
-            onDidDismiss={() => setShowToast_invio(false)}    //dopo 2 secondi si chiude e setta a false
+            onDidDismiss={() => setShowToastInvio(false)}
             message="Operazione completata"
             position="bottom"
             color="success"
           />
-          <IonToast
-            isOpen={showToast_annulla}
-            duration={2000}
-            onDidDismiss={() => setShowToast_annulla(false)}    //dopo 2 secondi si chiude e setta a false
-            message="Operazione annullata"
-            position="bottom"
-            color="danger"
-          />
-
-            <IonItem>
-              <IonLabel >
-              QR: {codice}
-              </IonLabel>  
-              <IonButton onClick={() => {checkPermission(0)}} size="medium" expand="block" slot="end">
-                 QR CODE SCAN
-              </IonButton>
-            </IonItem>
-            
-            <IonItem>
-            <IonLabel>
-              Nuova quantità: {quantità}
-            </IonLabel>
-            <IonButton onClick={() => setShowAlert(true)} size="medium" expand="block" slot="end">
-                 Inserisci quantità
-              </IonButton>
-            </IonItem>
-
-            <IonItem>
-              <IonLabel>
-              QR: {codice_nuovo}
-              </IonLabel>  
-              <IonButton onClick={() => {checkPermission(1)}} size="medium" expand="block" slot="end">
-                 NEW QR CODE SCAN
-              </IonButton>
-            </IonItem>
-
-            <IonItem>
-            <IonLabel>
-              Quantità sottratta: {quantità_nuova}
-            </IonLabel>
-            <IonButton onClick={() => setShowModal_nuovo(true)} size="medium" expand="block" slot="end">
-            Inserisci quantità
-              </IonButton>
-            </IonItem>
-
-            <IonButton onClick={() => setShowActionSheet(true)} size="large" expand="block" color="success" >
-                 Invio
-            </IonButton>            
-      </IonContent>
+      
     </IonPage>
-  )}
+  )
+        }
   else {
     return(
-      null
-    )
-  }
+      <IonToolbar>
+        <IonButton slot="end" >
+          <IonBackButton text="Indietro" defaultHref="/" onClick={() => setNascondi(false)}/>
+       </IonButton>
+      </IonToolbar>
+  )}
 }
 
 export default Pallets
