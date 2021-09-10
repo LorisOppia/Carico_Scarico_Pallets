@@ -73,6 +73,19 @@ const Pallets = props => {
     setPallets(newPallets);
   }
 
+  const handleEditClick = (palletId,qr,check) => {
+    //console.log(palletId,"--- ",check);
+    const newPallets=[...pallets];
+    const index = pallets.findIndex((contact)=> contact.id === palletId)
+    const newPallet= {
+      id: palletId,
+      qr: qr,
+      carico: ""+check
+    }
+    newPallets.splice(index,1,newPallet);
+    setPallets(newPallets);
+  }
+
   const checkPermission = async () => {
     const status = await BarcodeScanner.checkPermission({ force: true });     //chiede permesso fotocamera
     if (status.granted) { startScan() }
@@ -112,7 +125,7 @@ const Pallets = props => {
 }
 
   const dividePallets = async()=>{
-    //console.log(pallets)
+    console.log(pallets)
     setShowLoadingDatabase(true);
     for (var pallet of pallets){
       var data={"qr":pallet.qr,"carico":pallet.carico}
@@ -220,7 +233,8 @@ const Pallets = props => {
             </IonRow>
             {pallets.map((contact)=> (
                 <ReadOnlyRow contact={contact}
-                handleDeleteClick={handleDeleteClick}/>
+                handleDeleteClick={handleDeleteClick}
+                handleEdiCick={handleEditClick}/>
             ))}
           </IonGrid>
           <br/><br/><br/>
