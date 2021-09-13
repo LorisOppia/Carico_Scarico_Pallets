@@ -21,11 +21,16 @@ import React from 'react'
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
 import { url } from '../../config/config'
+import { App } from '@capacitor/app';
 
 import ReadOnlyRow from '../../components/readOnlyRow';
 
 
 const Pallets = props => {
+
+  App.addListener('backButton', () => {
+    setHideHomePage(false)
+  })
 
   //Visibility Variables
   const [hideHomePage, setHideHomePage] = React.useState(false) //vero= mostra fotocamera falso= mostra homepage
@@ -246,13 +251,13 @@ const Pallets = props => {
               QR: {code}
               </IonLabel>  
               <IonCheckbox checked={checked} onIonChange={e => {setChecked(e.detail.checked)}} />
-              <IonButton onClick={() => {/*checkPermission()}*/setCode(Math.floor(Math.random()*1000));}} size="medium" expand="block" slot="end">
+              <IonButton onClick={() => {checkPermission()}/*setCode(Math.floor(Math.random()*1000));*/} size="medium" expand="block" slot="end">
                  QR CODE SCAN
               </IonButton>
             </IonItem>
           
             <a href="#bottom">
-            <IonButton  type="submit" size="large" expand="block"  onClick={()=>addPallets()} >Aggiungi</IonButton>  
+            <IonButton  type="submit" size="large" expand="block" fill="solid" onClick={()=>addPallets()} >Aggiungi</IonButton>  
             </a>
             <IonButton onClick={() => setShowActionSheet(true)} size="large" expand="block" color="success" >
                  Invio
@@ -260,18 +265,8 @@ const Pallets = props => {
 
     </IonPage>
   )}
-  if(hideHomePage === true) {
-    return(
-     
-      <IonHeader>
-      <IonToolbar>
-        <IonButton slot="end" >
-          <IonBackButton text="Indietro" defaultHref="/" onClick={() => {BarcodeScanner.stopScan(); setHideHomePage(false)}}/>
-       </IonButton>
-      </IonToolbar>
-    </IonHeader>
-      
-    )
+  else {
+    return null;      
   }
 }
 
