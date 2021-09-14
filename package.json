@@ -5,6 +5,7 @@
     "@capacitor-community/barcode-scanner": "^2.0.1",
     "@capacitor/android": "3.2.0",
     "@capacitor/core": "3.0.1",
+    "@capacitor/app": "^1.0.3",
     "@capacitor/geolocation": "^1.0.2",
     "@ionic/pwa-elements": "^3.0.2",
     "@ionic/react": "^5.6.9",
