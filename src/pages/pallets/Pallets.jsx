@@ -9,24 +9,31 @@ import {
   IonItemOptions,
   IonItemOption,
   IonLabel,
-  IonBackButton,
   IonAlert,
   IonToast,
+  IonActionSheet,
+  IonIcon,
+  IonLoading,
 } from '@ionic/react'
-import {useState} from 'react'
+import { useState } from 'react'
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 import { App } from '@capacitor/app';
+import { settingsOutline } from 'ionicons/icons'
 
 const Pallets = () => {
 
+  let url = "http://127.0.0.1:8000/caricoScaricoPallets/"
+
+
   App.addListener('backButton', () => {
+    BarcodeScanner.stopScan()
     setNascondi(false)
   })
 
   const invia = async () => {
-    let url = "http://127.0.0.1:8000/caricoScaricoPallets/"
     let carico
     let data = {}
+    setShowLoading(true)
     for (let i = 0;i<righe.length; i++){
     carico = false
     if (testo[i]==="Carico") {carico=true}
@@ -43,12 +50,13 @@ const Pallets = () => {
           body: JSON.stringify(data) 
       });
   }
-    catch(error){
-    }
+    catch(error){setShowToastErr(true); 
+      setShowLoading(false) ;return}
   }
-  if (righe.length>0){setRighe([])
-                      setTesto([])
-                      setShowToastInvio(true)}
+  setRighe([])
+  setTesto([])
+  setShowToastInvio(true)
+  setShowLoading(false)
   }
 
   const checkPermission = async () => {
@@ -59,8 +67,8 @@ const Pallets = () => {
   const startScan = async () => {
     setNascondi(true)
     const result = await BarcodeScanner.startScan();
-    if (result.hasContent) { setRighe(righe => [...righe, result.content]);
-                            setTesto(testo => [...testo, "Carico"]);
+    if (result.hasContent) { setRighe(righe => [result.content, ...righe]);
+                            setTesto(testo => ["Carico", ...testo]);
                             setNascondi(false); }
     }; 
     
@@ -77,35 +85,72 @@ const Pallets = () => {
     document.getElementById(id).close();
   };
 
+  const salva = () => {
+    setRigheSalva(righe);
+    setTestoSalva(testo)
+    setRighe([])
+    setTesto([])
+    };
+  
+  const recupera = () => {
+    setRighe(righeSalva)
+    setTesto(testoSalva)
+    setRigheSalva([])
+    setTestoSalva([])
+  };
+
+  const changeAllToScarica = () => {
+    let app = []
+    for (let i=0;i<righe.length;i++){
+      app.push("Scarico")
+    }
+    setTesto(app);
+  }
+
+  const changeAllToCarica = () => {
+    let app = []
+    for (let i=0;i<righe.length;i++){
+      app.push("Carico")
+    }
+    setTesto(app);
+  }
+
   const [righe, setRighe] = useState([])
+  const [righeSalva, setRigheSalva] = useState([])
   const [nascondi, setNascondi] = useState(false)
   const [testo, setTesto] = useState([])
+  const [testoSalva, setTestoSalva] = useState([])
   const [showAlertRimuovi, setShowAlertRimuovi] = useState(false)
   const [showAlertInvia, setShowAlertInvia] = useState(false)
   const [showAlertNoElem, setShowAlertNoElem] = useState(false)
   const [showToastInvio, setShowToastInvio] = useState(false)
-  
+  const [showToastErr, setShowToastErr] = useState(false)
+  const [showActionSheet, setShowActionSheet] = useState(false)
+  const [showAlertSalva, setShowAlertSalva] = useState(false)
+  const [showLoading, setShowLoading] = useState(false)
+
+
   if (nascondi===false){
-    return (
+    return(
     <IonPage>
     <IonToolbar>
         <IonTitle>Home page</IonTitle>
       </IonToolbar>
 
       <IonItem>
-        Codici inseriti: {righe.length}
-        <IonButton slot="end" color="danger" size="medium" onClick={() => setShowAlertRimuovi(true)}>Rimuovi tutti</IonButton>
+        Elementi inseriti: {righe.length}
+        <IonButton color="light" size="medium" slot="end" onClick={()=>setShowActionSheet(true)}> <IonIcon icon={settingsOutline}/></IonButton>
       </IonItem>
 
       <IonContent>
         {righe.map((_,i) => (<IonItemSliding key={i} id={i}>
                                 <IonItemOptions side="end" >
                                   <IonItemOption color="danger" onClick={() => {rimuovi(i); chiudi(i)}}>
-                                  Cancella
+                                  Rimuovi
                                   </IonItemOption>
                                 </IonItemOptions>
                                 <IonItem>
-                                  {righe[i]}
+                                  {righe.length-i} - {righe[i]}
                                   <IonLabel slot="end" onClick={() => {let app=[...testo]; if (testo[i]==="Carico") {app[i]="Scarico"}
                                                                                             else {app[i]="Carico"}
                                                                         setTesto(app)
@@ -117,12 +162,17 @@ const Pallets = () => {
       </IonContent>
 
       <IonItem>
-            <IonButton slot="start" color="success" size="large" onClick={() => {if (righe.length===0){setShowAlertNoElem(true)} 
-                                                                                 else {setShowAlertInvia(true)}}}>Invia</IonButton>
-            <IonButton onClick={() => checkPermission()} size="large" slot="end">       
+            <IonButton slot="start" color="success" size="large" onClick={() => {if (righe.length===0) {setShowAlertNoElem(true)} 
+                                                                                 else {setShowAlertInvia(true)}}}>
+                    Invia
+                </IonButton>
+
+            <IonButton onClick={() => {/*setRighe(righe => [Math.floor(Math.random() * 50), ...righe]);
+                                       setTesto(testo => ["Carico", ...testo])*/ checkPermission()}} size="large" slot="end">       
                  Scan
             </IonButton>
       </IonItem>
+
       <IonAlert
           isOpen={showAlertRimuovi}
           onDidDismiss={() => setShowAlertRimuovi(false)}
@@ -134,7 +184,7 @@ const Pallets = () => {
             },
             {
               text: 'Rimuovi',
-              handler: () => { setRighe([]); setTesto([]) }
+              handler: () => { salva() }
             }
           ]}
         /> 
@@ -150,6 +200,17 @@ const Pallets = () => {
             {
               text: 'Invia',
               handler: () => {invia()}
+            }
+          ]}
+        />
+        <IonAlert
+          isOpen={showAlertSalva}
+          onDidDismiss={() => setShowAlertSalva(false)}
+          header={'Non ci sono elementi da recuperare'}
+          buttons={[
+            {
+              text: 'Ok',
+              handler: () => {setShowAlertSalva(false)}
             }
           ]}
         />
@@ -172,18 +233,47 @@ const Pallets = () => {
             position="bottom"
             color="success"
           />
+          <IonToast
+            isOpen={showToastErr}
+            duration={2000}
+            onDidDismiss={() => setShowToastErr(false)}
+            message="Errore"
+            position="bottom"
+            color="danger"
+          />
+
+          <IonActionSheet 
+            isOpen={showActionSheet}
+            onDidDismiss={() => setShowActionSheet(false)}
+            header= {"Opzioni"}
+            buttons={[{
+              text: 'Rimuovi Tutti',
+              handler: () => {if (righe.length===0){setShowAlertNoElem(true)} 
+                              else {setShowAlertRimuovi(true)}}
+            },  {
+              text: 'Imposta tutti: Carico',
+              handler: () => { changeAllToCarica()}
+            },{
+              text: 'Imposta tutti: Scarico',
+              handler: () => {changeAllToScarica()}
+            },{
+              text: 'Recupera elementi',
+              handler: () => {if (righeSalva.length===0) {setShowAlertSalva(true)}
+                              else {recupera()}}
+            },
+            ]}>
+        </IonActionSheet>
+
+        <IonLoading
+            isOpen={showLoading}
+            onDidDismiss={() => setShowLoading(false)}
+            message={'Invio in corso...'}
+      />
       
     </IonPage>
   )
         }
-  else {
-    return(
-      <IonToolbar>
-        <IonButton slot="end" >
-          <IonBackButton text="Indietro" defaultHref="/" onClick={() => setNascondi(false)}/>
-       </IonButton>
-      </IonToolbar>
-  )}
+  else { return null}
 }
 
 export default Pallets
