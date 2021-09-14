@@ -39,18 +39,9 @@ const App = () => {
   return (
     <IonApp>
       <IonReactRouter>
-        <IonTabs>
           <IonRouterOutlet>
             <Route path="/" component={AboutUs} />
           </IonRouterOutlet>
-
-          <IonTabBar slot="bottom">
-            <IonTabButton tab="pallets" href="/">
-              <IonIcon icon={home} />
-              <IonLabel>Home</IonLabel>
-            </IonTabButton>
-          </IonTabBar>
-        </IonTabs>
       </IonReactRouter>
     </IonApp>
   )
