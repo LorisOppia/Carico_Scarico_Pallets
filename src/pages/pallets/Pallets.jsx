@@ -19,11 +19,9 @@ import { useState } from 'react'
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 import { App } from '@capacitor/app';
 import { settingsOutline } from 'ionicons/icons'
+import { url } from "../../config/config";
 
 const Pallets = () => {
-
-  let url = "http://127.0.0.1:8000/caricoScaricoPallets/"
-
 
   App.addListener('backButton', () => {
     BarcodeScanner.stopScan()
