@@ -1,15 +1,9 @@
 import { Route } from 'react-router-dom'
 import {
   IonApp,
-  IonIcon,
-  IonLabel,
   IonRouterOutlet,
-  IonTabBar,
-  IonTabButton,
-  IonTabs,
 } from '@ionic/react'
 import { IonReactRouter } from '@ionic/react-router'
-import { home } from 'ionicons/icons'
 
 import AboutUs from './pages/pallets/Pallets'
 
@@ -39,18 +33,9 @@ const App = () => {
   return (
     <IonApp>
       <IonReactRouter>
-        <IonTabs>
           <IonRouterOutlet>
             <Route path="/" component={AboutUs} />
           </IonRouterOutlet>
-
-          <IonTabBar slot="bottom">
-            <IonTabButton tab="pallets" href="/">
-              <IonIcon icon={home} />
-              <IonLabel>Home</IonLabel>
-            </IonTabButton>
-          </IonTabBar>
-        </IonTabs>
       </IonReactRouter>
     </IonApp>
   )
